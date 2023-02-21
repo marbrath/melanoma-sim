@@ -3,7 +3,7 @@ import math
 from permutation_fast import get_parent_matrices
 from lifetime_dist import lifetime_sample
 import matplotlib.pyplot as plt
-from lifelines import KaplanMeierFitter
+#from lifelines import KaplanMeierFitter
 
 np.random.seed(seed=0)
 
@@ -34,28 +34,26 @@ def corr_frailty(birthyears, genders):
     nu_g = var_g/var_sum**2
     nu_gi = nu_g/(num_genes/2)
 
-    print(nu_gi, eta, nu_e)
-    u_g = np.random.gamma(nu_gi, 1/eta, num_genes)
-    z_g = np.dot(P, u_g)
-    z_e = np.random.gamma(nu_e, 1/eta, 1)*np.ones(family_size)
+    #print(nu_gi, eta, nu_e)
+    num_families = birthyears.shape[0]
+    u_g = np.random.gamma(nu_gi, 1/eta, (num_families, num_genes))
+    z_g = np.matmul(P, u_g[:, :, None]).squeeze(-1)
+    z_e = np.random.gamma(nu_e, 1/eta, (num_families, 1)).repeat(family_size, axis=1)
     z = z_g + z_e
 
-    x_1 = np.append([0,1], np.random.binomial(1, 0.5, 8))
     min_elem = 1853
     
     birthyears = (birthyears - min_elem)/10.
-    unif = np.random.uniform(0, 1, family_size)
-    ts = (-np.log(unif)/(z*np.exp(beta_0 + beta_1*x_1 + beta_2*birthyears)))**(1/k)
+    unif = np.random.uniform(0, 1, (num_families, family_size))
+    ts = (-np.log(unif)/(z*np.exp(beta_0 + beta_1*genders + beta_2*birthyears)))**(1/k)
 
-    return z
-    #return ts/12.
+    return ts/12.
 
 family_genders = []
 family_birthyears = []
 family_lifetimes = []
 family_events = []
 num_children = []
-family_frailties = []
 
 for year in range(1850, 2015 + 1 - 20):
     #print(year)
@@ -72,20 +70,18 @@ for year in range(1850, 2015 + 1 - 20):
     #print(time_to_death)
 
     ##check mean of frailty variables
-    #time_to_melanoma = corr_frailty(birthyears, genders)
+    time_to_melanoma = corr_frailty(birthyears, genders)
     #print(time_to_melanoma)
     lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears))
-    #family_lifetimes.append(lifetimes)
-    family_frailties.append(corr_frailty(birthyears, genders))
-    #family_events.append(lifetimes == time_to_melanoma)
-    #print(time_to_melanoma.min())
+    family_lifetimes.append(lifetimes)
+    family_events.append(lifetimes == time_to_melanoma)
 
     num_children.append(np.random.randint(0, max_children + 1, num_families)) # todo: Use proper distribution
 
 family_genders = np.vstack(family_genders)
 family_birthyears = np.vstack(family_birthyears)
-#family_lifetimes = np.vstack(family_lifetimes)
-#family_events = np.vstack(family_events)
+family_lifetimes = np.vstack(family_lifetimes)
+family_events = np.vstack(family_events)
 num_children = np.hstack(num_children)
 
 #ts = family_lifetimes.ravel()

@@ -32,9 +32,10 @@ def corr_frailty(birthyears, genders):
     nu_gi = nu_g/(num_genes/2)
 
     #print(nu_gi, eta, nu_e, num_genes)
-    u_g = np.random.gamma(nu_gi, 1/eta, num_genes)
-    z_g = np.dot(P, u_g)
-    z_e = np.random.gamma(nu_e, 1/eta, 1)*np.ones(family_size)
+    num_families = birthyears.shape[0]
+    u_g = np.random.gamma(nu_gi, 1/eta, (num_families, num_genes))
+    z_g = np.matmul(P, u_g[:, :, None]).squeeze(-1)
+    z_e = np.random.gamma(nu_e, 1/eta, (num_families, 1)).repeat(family_size, axis=1)
     z = z_g + z_e
 
     return z
