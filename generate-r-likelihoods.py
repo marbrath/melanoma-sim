@@ -6,9 +6,9 @@ import numpy as np
 import math
 import itertools
 
-num_children = 6
+num_children = 8
 family_size = 2 + num_children
-max_num_sick = 2
+max_num_sick = 5
 
 P_f, P_m = get_parent_matrices(family_size)
 P_f = P_f[:family_size]
@@ -97,7 +97,7 @@ def getVariants():
   a_variants = {0: a}
 
   for comb in all_combs:
-      id = sum(1 << (family_size - i - 1) for i in comb)
+      id = sum(1 << i for i in comb)
       a_variants[id] = part_deriv(a, (t[i] for i in comb))
 
   param_args = '''  const double var_e,

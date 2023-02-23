@@ -55,4 +55,21 @@ for year in range(1850, 2015 + 1 - 20):
 
 family_frailties = np.vstack(family_frailties)
 
-print(np.mean(family_frailties.ravel()))
+#print(np.mean(family_frailties.ravel()))
+
+#kmf = KaplanMeierFitter()
+#kmf.fit(ts, events)
+#kmf.survival_function_.plot()
+#plt.title('Survival function')
+#plt.show()
+
+## survival function
+#x = np.sort(ts)
+#y = np.arange(len(ts))/float(len(ts))
+#plt.plot(x, 1 - y)
+#plt.show()
+
+#plt.hist(ts, bins=30, density=True)
+#plt.plot(years[1:], cdf[1:] - cdf[:-1])
+#plt.show()
+
