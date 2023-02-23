@@ -1,9 +1,10 @@
 library(RcppCNPy)
 library(Rmpi)
 library(numDeriv)
-library(add18env)
+library(addsim)
 
 l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
+
     lhs = likelihood(
       sick_id,
       ts,
@@ -48,15 +49,13 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
     }
 
     res = log(value)
-    print('ok')
 
     return(res)
 }
 
 
-all_sick_ids = npyLoad('npy_files/sick_ids', "integer")
-all_num_events = npyLoad('npy_files/all_num_events', "integer")
-
+all_sick_ids = npyLoad('npy_files/sick_ids.npy', "integer")
+all_num_events = npyLoad('npy_files/all_num_events.npy', "integer")
 all_ts = npyLoad('npy_files/lifetimes.npy', "integer")
 all_rs = npyLoad('npy_files/truncations.npy', "integer")
 all_bs = npyLoad('npy_files/birthyears.npy', "integer")
@@ -106,7 +105,7 @@ l_parallell = function(args){
     beta_1_ = args[5]
     beta_2_ = args[6]
 
-    n = length(all_num_sick_parents)
+    n = length(all_sick_ids)
 
     l_parallell =
         sum(
@@ -115,12 +114,12 @@ l_parallell = function(args){
                 #lapply(
                     1:n,
                     FUN=function(i) l_term(
-                                            all_sick_id[i],
+                                            all_sick_ids[i],
                                             all_num_events[i],
-                                            all_ts[(20*(i-1)+1):(20*i)],
-                                            all_rs[(20*(i-1)+1):(20*i)],
-                                            all_bs[(20*(i-1)+1):(20*i)],
-                                            all_gs[(20*(i-1)+1):(20*i)],
+                                            all_ts[(10*(i-1)+1):(10*i)],
+                                            all_rs[(10*(i-1)+1):(10*i)],
+                                            all_bs[(10*(i-1)+1):(10*i)],
+                                            all_gs[(10*(i-1)+1):(10*i)],
                                             var_e_,
                                             var_g_,
                                             k_,
@@ -132,6 +131,7 @@ l_parallell = function(args){
 
             ))
         )
+        print("hei")
     return(-l_parallell)
 }
 

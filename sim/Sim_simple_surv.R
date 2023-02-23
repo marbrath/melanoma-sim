@@ -22,7 +22,7 @@ curve(lambda_01 * exp(beta1_01*1) * mu_01 * x^(mu_01-1), from=1, to=max(t_c), xl
 curve(lambda_01 * exp(beta1_01*0) * mu_01 * x^(mu_01-1), from=1, to=max(t_c), xlab="t", ylab="h(t)", add=T,col=3)
 legend(0.5,1,c("sex=1","sex=0"),lty=c(1,1),col=c("red","green"),cex=0.75)
 
-
+if (FALSE) {
 ##SIMULATE n INDIVIDUAL TRAJECTORIES:
 simdata = data.frame(id=integer(),event=integer(),tstart=integer(),tstop=integer(),a=integer())#,l=integer())
 eventtime_vec = c()
@@ -48,3 +48,4 @@ plot(fit, mark.time=FALSE, xlab="Years",main="Kaplan-Meier",ylim=c(0.95,1))
 
 dev.new()
 hist(eventtime_vec/12)
+}

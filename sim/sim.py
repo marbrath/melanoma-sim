@@ -40,7 +40,7 @@ def corr_frailty(birthyears, genders):
     z_e = np.random.gamma(nu_e, 1/eta, (num_families, 1)).repeat(family_size, axis=1)
     z = z_g + z_e
 
-    min_elem = 1853
+    min_elem = 1850
     
     birthyears = (birthyears - min_elem)/10.
     unif = np.random.uniform(0, 1, (num_families, family_size))
@@ -70,7 +70,6 @@ for year in range(1850, 2015 + 1 - 20):
     lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears))
     events = (lifetimes == time_to_melanoma)
 
-
     num_children = np.random.randint(0, max_children + 1, num_families) # todo: Use proper distribution
 
     children_to_remove = np.arange(lifetimes.shape[1])[None] > (num_children[:, None] + 1)
@@ -79,8 +78,7 @@ for year in range(1850, 2015 + 1 - 20):
     genders[children_to_remove] = 0
     events[children_to_remove] = 0
 
-    fam_num_children.append(num_children)
-    fam_birthyears.append(birthyears)
+    #fam_num_children.append(num_children)
     fam_lifetimes.append(lifetimes)
     fam_events.append(events)
     fam_num_events.append(events.sum(axis=1))
@@ -91,7 +89,7 @@ fam_birthyears = np.vstack(fam_birthyears)
 fam_lifetimes = np.vstack(fam_lifetimes)
 fam_events = np.vstack(fam_events)
 fam_num_events = np.vstack(fam_num_events)
-fam_num_children = np.vstack(fam_num_children)
+#fam_num_children = np.vstack(fam_num_children)
 
 fam_genders = fam_genders.ravel().astype('int64')
 fam_birthyears = fam_birthyears.ravel().astype('int64')
@@ -99,20 +97,27 @@ fam_lifetimes = fam_lifetimes.ravel().astype('int64')
 
 event_bits = np.packbits(fam_events, bitorder='little', axis=1).astype('int64')
 assert(event_bits.shape[1] == 2) # we here assume that 9 <= family_size <= 16, which it is not
-fam_sick_ids = (event_bits[:, 0] << 8) + event_bits[:, 1]
+fam_sick_ids = (event_bits[:, 1] << 8) + event_bits[:, 0]
 
-fam_num_events = fam_num_events.astype('int64')
-fam_num_children = fam_num_children.astype('int64')
-
+fam_num_events = fam_num_events.ravel().astype('int64')
+#fam_num_children = fam_num_children.ravel().astype('int64')
 fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
 
-#fam_lifetimes = np.empty(fam_size*num_families, np.dtype('int64'))
-#fam_truncation_times = np.empty(fam_size*num_families, np.dtype('int64'))
-#fam_birthyears = np.empty(fam_size*num_families, np.dtype('int64'))
-#fam_genders = np.empty(fam_size*num_families, np.dtype('int64'))
+np.save('npy_files/genders', fam_genders)
+np.save('npy_files/birthyears', fam_birthyears)
+np.save('npy_files/lifetimes', fam_lifetimes)
+np.save('npy_files/sick_ids', fam_sick_ids)
+np.save('npy_files/all_num_events', fam_num_events)
+#np.save('npy_files/num_children', fam_num_children)
+np.save('npy_files/truncations', fam_truncation_times)
 
-#np.save('npy_files/lifetimes', fam_lifetimes)
-#np.save('npy_files/truncations', fam_truncation_times)
-#np.save('npy_files/birthyears', fam_birthyears)
-#np.save('npy_files/genders', fam_genders)
+'''
+fam_events = fam_events.ravel().astype('int64')
+
+kmf = KaplanMeierFitter()
+kmf.fit(fam_lifetimes, fam_events)
+kmf.survival_function_.plot()
+plt.title('Survival function')
+plt.show()
+'''
 

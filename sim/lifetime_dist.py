@@ -33,8 +33,7 @@ def lifetime_sample(year, shape):
 	idx = mean_age.index[mean_age['Year'] == year].tolist()[0]
 	cohort_mean = float(mean_age.loc[idx].at["Total"])
 
-	return (cohort_mean/76.)*ts
-	return ts
+	return (cohort_mean/73.)*ts
 
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
