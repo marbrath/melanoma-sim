@@ -53,13 +53,19 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
     return(res)
 }
 
+args = commandArgs(trailingOnly=TRUE)
+if (length(args) != 1) {
+  stop("Usage: optimize.R <path/to/npy_files_xxx>")
+}
 
-all_sick_ids = npyLoad('npy_files/sick_ids.npy', "integer")
-all_num_events = npyLoad('npy_files/all_num_events.npy', "integer")
-all_ts = npyLoad('npy_files/lifetimes.npy', "integer")
-all_rs = npyLoad('npy_files/truncations.npy', "integer")
-all_bs = npyLoad('npy_files/birthyears.npy', "integer")
-all_gs = npyLoad('npy_files/genders.npy', "integer")
+root_path = args[1]
+
+all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
+all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")
+all_ts = npyLoad(file.path(root_path, 'lifetimes.npy'), "integer")
+all_rs = npyLoad(file.path(root_path, 'truncations.npy'), "integer")
+all_bs = npyLoad(file.path(root_path, 'birthyears.npy'), "integer")
+all_gs = npyLoad(file.path(root_path, 'genders.npy'), "integer")
 
 indices = all_bs > 0
 min_elem = min(all_bs[indices])
@@ -131,7 +137,6 @@ l_parallell = function(args){
 
             ))
         )
-        print("hei")
     return(-l_parallell)
 }
 
@@ -140,7 +145,10 @@ begin = proc.time()
 #init = c(log(7.02e2), log(0.32), log(4.34), 4.55, -0.03, 0.400)
 #init = c(5, -2, -0.5, 4, -20)
 #init = c(-3.097442, -3.926584, -3.951644, -28.553488, 0)
-init = c(log(1/(81*exp(-2.75))), log(1/(81*exp(-3.94))), 3.619014, -28.551643, 0, 0)
+#init = c(log(1/(81*exp(-2.75))), log(1/(81*exp(-3.94))), 3.619014, -28.551643, 0, 0)
+init = c(-0.6795072, 0.5544318, 4.3157241, -35.7024815, 0.2700432, 0.0482788)
+#init = c(-13.4428193, 0.4186986, 6.6944292, -17.2938254, -4.2986701, 12.8406912)
+#init = c(6.9215575, -17.2621727, 1.5308110, -7.0032078, -2.0256649, 0.4824304)
 #init = c(0.8*(-3.8977474), 0.95*43.4855928, 1.05*0.1483913,  0.95*2.1511297,  1.10*4.324515, 1.05*6)
 #init = c(0.8*(-3.954447), 0.95*37.818952, 1.05*2.732414, 0.95*(-5.420834), 1.10*3.282227, 1.05*8.629212, 0)
 print("init, bounded, nlminb:")

@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import scipy.interpolate    
 
-np.random.seed(seed=0)
-
 mean_age = pd.read_csv('data/mean_lifetimes.csv', sep=';', decimal=',')
 mortality_by_year = pd.read_csv('data/distribution_both_1966.csv', sep=';', decimal=',')
 years = np.zeros(len(mortality_by_year) + 1)
