@@ -106,7 +106,7 @@ mpi.bcast.Robj2slave(l_term)
 niter = 0
 
 l_parallell = function(args){
-    niter <- niter + 1
+    niter <<- niter + 1
     print(niter)
 
     var_e_ = exp(args[1])
