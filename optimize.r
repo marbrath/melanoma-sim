@@ -103,7 +103,12 @@ mpi.bcast.Robj2slave(all_gs)
 mpi.bcast.Robj2slave(likelihood)
 mpi.bcast.Robj2slave(l_term)
 
+niter = 0
+
 l_parallell = function(args){
+    niter += 1
+    print(niter)
+
     var_e_ = exp(args[1])
     var_g_ = exp(args[2])
     k_ = args[3]
