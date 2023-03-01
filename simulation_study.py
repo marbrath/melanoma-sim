@@ -5,6 +5,7 @@ import sys
 
 if len(sys.argv) != 4:
     print(f'USAGE: {sys.argv[0]} <num fams per year> <seed begin> <seed end>')
+    sys.exit(1)
 
 num_fams_per_year = int(sys.argv[1])
 seed_begin = int(sys.argv[2])
