@@ -21,5 +21,5 @@ for seed in range(seed_begin, seed_end):
     sys.stdout.write(f' done\n')
     sys.stdout.write(f'Optimizing for seed {seed}...')
     sys.stdout.flush()
-    subprocess.run(f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.R npy_files_{seed:04d} &> results/{seed:04d}.out', shell=True, check=True)
+    subprocess.run(f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r npy_files_{seed:04d} &> results/{seed:04d}.out', shell=True, check=True)
     sys.stdout.write(f' done\n')
