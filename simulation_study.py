@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys
+import time
+from datetime import timedelta
 
 
 if len(sys.argv) != 4:
@@ -11,15 +13,41 @@ num_fams_per_year = int(sys.argv[1])
 seed_begin = int(sys.argv[2])
 seed_end = int(sys.argv[3])
 
-if not os.path.exists('results'):
-    os.mkdir('results')
+results_path = 'sim-output/results'
+if not os.path.exists(results_path):
+    os.mkdir(results_path)
+
+def get_time_str(duration):
+    hours = int(duration // 3600)
+    minutes = int((duration % 3600) // 60)
+    seconds = duration % 60
+
+    if hours > 0:
+        return f'{hours}h {minutes}m {int(seconds)}s'
+
+    if minutes > 0:
+        return f'{minutes}m {int(seconds)}s'
+
+    return f'{seconds:.2f}s'
 
 for seed in range(seed_begin, seed_end):
     sys.stdout.write(f'Simulating data for seed {seed}...')
     sys.stdout.flush()
+    begin = time.monotonic()
     subprocess.run(f'python3 sim/sim.py {seed} {num_fams_per_year}', shell=True, check=True)
-    sys.stdout.write(f' done\n')
+    end = time.monotonic()
+    sys.stdout.write(f' done (took {get_time_str(end - begin)})\n')
     sys.stdout.write(f'Optimizing for seed {seed}...')
     sys.stdout.flush()
-    subprocess.run(f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r npy_files_{seed:04d} &> results/{seed:04d}.out', shell=True, check=True)
-    sys.stdout.write(f' done\n')
+
+    try:
+        begin = time.monotonic()
+        subprocess.run(f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r sim-output/npy_files_{seed:04d} &> {results_path}/{seed:04d}.out', shell=True, check=True)
+        end = time.monotonic()
+        sys.stdout.write(f' done (took {get_time_str(end - begin)})\n')
+        sys.stdout.flush()
+    except KeyboardInterrupt:
+        sys.exit(0)
+    except:
+        sys.stdout.write(f' failed\n')
+        sys.stdout.flush()

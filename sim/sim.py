@@ -3,7 +3,7 @@ import math
 from permutation_fast import get_parent_matrices
 from lifetime_dist import lifetime_sample
 import matplotlib.pyplot as plt
-from lifelines import KaplanMeierFitter
+#from lifelines import KaplanMeierFitter
 import sys
 import os
 
@@ -104,7 +104,7 @@ def sim(seed, num_fam_per_year):
     #fam_num_children = fam_num_children.ravel().astype('int64')
     fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
 
-    root_path = 'npy_files_%04d' % seed
+    root_path = 'sim-output/npy_files_%04d' % seed
 
     if not os.path.exists(root_path):
         os.mkdir(root_path)
