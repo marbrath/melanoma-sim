@@ -112,9 +112,9 @@ l_parallell = function(args){
     var_e_ = exp(args[1])
     var_g_ = exp(args[2])
     k_ = args[3]
-    beta_0_ = args[4]
-    beta_1_ = args[5]
-    beta_2_ = args[6]
+    beta_0_ = -35.70
+    beta_1_ = args[4]
+    beta_2_ = args[5]
 
     n = length(all_sick_ids)
 
@@ -151,15 +151,15 @@ init = c(
   log(0.51), # var_e
   log(1.74), # var_g
   4.32, # k
-  -35.70, # beta_0
+  #-35.70, # beta_0
   0.27, # beta_1
   0.05 # beta_2
 )
 print("init, bounded, nlminb:")
 print(init)
 
-lower_ = c(-20, -20, 0.1, -40, -10, -10)
-upper_ = c(10, 10, 10, 25, 25, 25)
+lower_ = c(-20, -20, 0.1, -10, -10)
+upper_ = c(10, 10, 10, 25, 25)
 
 optim = nlminb(init, object= l_parallell, lower = lower_, upper = upper_, control=list(eval.max = 2000))
 #optim = optim(init, l_parallell, method="BFGS", control = list(maxit=2000), hessian = TRUE)
