@@ -2,7 +2,7 @@ import numpy as np
 import csv
 import itertools
 
-fam_events = np.load('npy_files/fam_events.npy')
+fam_events = np.load('npy_files_0001/fam_events.npy')
 
 num_children = 8
 arr = np.zeros([2]*(2 + num_children))
