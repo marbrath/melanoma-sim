@@ -22,3 +22,5 @@ addsim
 results
 npy_files*
 slurm-files
+.Rhistory
+addsimR

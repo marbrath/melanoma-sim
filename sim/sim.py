@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-def corr_frailty(birthyears, genders):
-    num_children = 8
+def corr_frailty(birthyears, genders, num_children):
     family_size = 2 + num_children
 
     P_f, P_m = get_parent_matrices(family_size)
@@ -35,19 +34,21 @@ def corr_frailty(birthyears, genders):
 
     num_fam_per_year = birthyears.shape[0]
     u_g = np.random.gamma(nu_gi, 1/eta, (num_fam_per_year, num_genes))
+
     z_g = np.matmul(P, u_g[:, :, None]).squeeze(-1)
     z_e = np.random.gamma(nu_e, 1/eta, (num_fam_per_year, 1)).repeat(family_size, axis=1)
-    z = z_g + z_e
+    #z = z_g + z_e
+
+    z = np.random.gamma(1/2, 2, (num_fam_per_year, 1)).repeat(family_size, axis=1)
 
     min_elem = 1850
-    
+
     birthyears = (birthyears - min_elem)/10.
     unif = np.random.uniform(0, 1, (num_fam_per_year, family_size))
     ts = (-np.log(unif)/(z*np.exp(beta_0 + beta_1*birthyears + beta_2*genders)))**(1/k)
 
-    return ts/12.
-
-
+    return ts
+  
 def sim(seed, num_fam_per_year):
     fam_genders = []
     fam_birthyears = []
@@ -55,30 +56,43 @@ def sim(seed, num_fam_per_year):
     fam_events = []
     fam_num_events = []
     fam_num_children = []
+    fam_frailties = []
 
     for year in range(1850, 2015 + 1 - 20):
-        max_children = 8
+        #print('YEAR')
+        #print(year)
+
+        max_children = 2
 
         birthyears = np.repeat([[year]*2 + [year + 20]*max_children], num_fam_per_year, axis=0)
+        #print(birthyears)
+
         genders = np.hstack((np.repeat([[0, 1]], num_fam_per_year, axis=0), np.random.binomial(1, 0.5, (num_fam_per_year, max_children))))
 
-        fam_genders.append(genders)
-        fam_birthyears.append(birthyears)
-
         time_to_death = lifetime_sample(year, (num_fam_per_year, 2 + max_children))
-        time_to_melanoma = corr_frailty(birthyears, genders)
-        lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears))
+        time_to_melanoma = corr_frailty(birthyears, genders, max_children)
+
+        #print(time_to_death)
+        #print(time_to_melanoma)
+        #print((2016 - birthyears)*12)
+
+        lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears)*12)
+
         events = (lifetimes == time_to_melanoma)*1
 
-        num_children = np.random.randint(0, max_children + 1, num_fam_per_year) # todo: Use proper distribution
+        num_children = np.random.randint(1, max_children + 1, num_fam_per_year) # todo: Use proper distribution
+        #num_children = 2
 
-        children_to_remove = np.arange(lifetimes.shape[1])[None] > (num_children[:, None] + 1)
+        children_to_remove = np.arange(time_to_melanoma.shape[1])[None] > (num_children[:, None] + 1)
+
         birthyears[children_to_remove] = 0
         lifetimes[children_to_remove] = 0
         genders[children_to_remove] = 0
         events[children_to_remove] = 0
 
-        #fam_num_children.append(num_children)
+        fam_num_children.append(num_children)
+        fam_genders.append(genders)
+        fam_birthyears.append(birthyears)
         fam_lifetimes.append(lifetimes)
         fam_events.append(events)
         fam_num_events.append(events.sum(axis=1))
@@ -87,35 +101,47 @@ def sim(seed, num_fam_per_year):
     fam_birthyears = np.vstack(fam_birthyears)
     fam_lifetimes = np.vstack(fam_lifetimes)
     fam_events = np.vstack(fam_events)
-
-
     fam_num_events = np.vstack(fam_num_events)
-    #fam_num_children = np.vstack(fam_num_children)
+    fam_num_children = np.vstack(fam_num_children)
+
+    num_families, family_size = fam_lifetimes.shape
 
     fam_genders = fam_genders.ravel().astype('int64')
     fam_birthyears = fam_birthyears.ravel().astype('int64')
     fam_lifetimes = fam_lifetimes.ravel().astype('int64')
+    fam_events_ = np.vstack(fam_events).ravel().astype('int64')
+    fam_ids = (np.ones((family_size, num_families))*np.arange(num_families)[None]).T.ravel().astype('int64')
 
     event_bits = np.packbits(fam_events, bitorder='little', axis=1).astype('int64')
-    assert(event_bits.shape[1] == 2) # we here assume that 9 <= family_size <= 16, which it is not
-    fam_sick_ids = (event_bits[:, 1] << 8) + event_bits[:, 0]
+    assert(event_bits.shape[1] <= 2) # we here assume that family_size <= 16, which it is not
+
+    fam_sick_ids = event_bits[:, 0]
+
+    if event_bits.shape[1] == 2:
+        fam_sick_ids += (event_bits[:, 1] << 8)
 
     fam_num_events = fam_num_events.ravel().astype('int64')
-    #fam_num_children = fam_num_children.ravel().astype('int64')
+    fam_num_children = fam_num_children.ravel().astype('int64')
     fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
+    
 
     root_path = 'sim-output/npy_files_%04d' % seed
+    #root_path = 'npy_files_%04d' % seed
 
     if not os.path.exists(root_path):
         os.mkdir(root_path)
 
-    np.save(root_path + '/fam_events', fam_events)
+
+    np.save(root_path + '/fam_num_children', fam_num_children)
+    np.save(root_path + '/fam_events', fam_events_)
     np.save(root_path + '/genders', fam_genders)
     np.save(root_path + '/birthyears', fam_birthyears)
     np.save(root_path + '/lifetimes', fam_lifetimes)
     np.save(root_path + '/sick_ids', fam_sick_ids)
     np.save(root_path + '/all_num_events', fam_num_events)
-    np.save(root_path + '/truncations', fam_truncation_times)   
+    np.save(root_path + '/truncations', fam_truncation_times) 
+    np.save(root_path + '/fam_ids', fam_ids) 
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:

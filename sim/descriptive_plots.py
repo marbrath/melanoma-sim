@@ -4,7 +4,7 @@ import itertools
 
 fam_events = np.load('npy_files_0001/fam_events.npy')
 
-num_children = 8
+num_children = 2
 arr = np.zeros([2]*(2 + num_children))
 
 for i in range(0, len(fam_events)):
@@ -15,7 +15,7 @@ perm = list(itertools.product([0,1], repeat=10))
 
 
 
-for i in range(0,9):
+for i in range(0,3):
 	print('Num sick: ', i)
 
 	for p in perm:

@@ -1,7 +1,21 @@
 library(RcppCNPy)
 library(Rmpi)
 library(numDeriv)
+
+
+#try(detach("package:addsimR", unload=TRUE))
+#detach("package:addsimR", unload=TRUE)
+
+#detach("package:addsim", unload=TRUE)
+#detach("package:addsimR", unload=TRUE)
+
+#library(addsimR)
+
 library(addsim)
+
+# Prints names of packages that are loaded
+print(loadedNamespaces()[match("addsim", loadedNamespaces())])
+print(loadedNamespaces()[match("addsimR", loadedNamespaces())])
 
 l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
 
@@ -43,7 +57,7 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 
     if (is.nan(value)) {
         print('in NaN')
-        print(c(lhs, rhs, num_events, ts))
+        print(c(sick_id, 'lhs', lhs, 'rhs', rhs, 'num_events', num_events, 'ts', ts))
 
          return(-1e06)
     }
@@ -54,11 +68,12 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 }
 
 args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 1) {
-  stop("Usage: optimize.R <path/to/npy_files_xxx>")
+if (length(args) != 2) {
+  stop("Usage: optimize.R <path/to/npy_files_xxx> <path/to/results/xxx")
 }
 
 root_path = args[1]
+result_root_path = args[2]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")
@@ -112,9 +127,9 @@ l_parallell = function(args){
     var_e_ = exp(args[1])
     var_g_ = exp(args[2])
     k_ = args[3]
-    beta_0_ = -35.70
-    beta_1_ = args[4]
-    beta_2_ = args[5]
+    beta_0_ = args[4]
+    beta_1_ = args[5]
+    beta_2_ = args[6]
 
     n = length(all_sick_ids)
 
@@ -127,10 +142,10 @@ l_parallell = function(args){
                     FUN=function(i) l_term(
                                             all_sick_ids[i],
                                             all_num_events[i],
-                                            all_ts[(10*(i-1)+1):(10*i)],
-                                            all_rs[(10*(i-1)+1):(10*i)],
-                                            all_bs[(10*(i-1)+1):(10*i)],
-                                            all_gs[(10*(i-1)+1):(10*i)],
+                                            all_ts[(4*(i-1)+1):(4*i)],
+                                            all_rs[(4*(i-1)+1):(4*i)],
+                                            all_bs[(4*(i-1)+1):(4*i)],
+                                            all_gs[(4*(i-1)+1):(4*i)],
                                             var_e_,
                                             var_g_,
                                             k_,
@@ -151,15 +166,16 @@ init = c(
   log(0.51), # var_e
   log(1.74), # var_g
   4.32, # k
-  #-35.70, # beta_0
+  -20, # beta_0
   0.27, # beta_1
   0.05 # beta_2
 )
 print("init, bounded, nlminb:")
 print(init)
+npySave(file.path(result_root_path, 'init.npy'), init)
 
-lower_ = c(-20, -20, 0.1, -10, -10)
-upper_ = c(10, 10, 10, 25, 25)
+lower_ = c(-20, -20, 0.1, -40, -10, -10)
+upper_ = c(10, 10, 10, 25, 25, 25)
 
 optim = nlminb(init, object= l_parallell, lower = lower_, upper = upper_, control=list(eval.max = 2000))
 #optim = optim(init, l_parallell, method="BFGS", control = list(maxit=2000), hessian = TRUE)
@@ -167,15 +183,27 @@ optim = nlminb(init, object= l_parallell, lower = lower_, upper = upper_, contro
 end = proc.time()
 print(end - begin)
 print(optim)
-print("grad")
-print(grad(l_parallell, optim$par))
 
-print("hessian")
-#hess = optim$hessian
-hess = optimHess(optim$par, l_parallell)
-print(hess)
-print("hessian inverse")
-print(solve(hess))
+if (optim$convergence == 0) {
+  npySave(file.path(result_root_path, 'optim.npy'), optim$par)
+} else {
+  npySave(file.path(result_root_path, 'optim.npy'), 0*optim$par)
+}
+
+#print("grad")
+#G = grad(l_parallell, optim$par)
+#print(G)
+#npySave(file.path(result_root_path, 'jac.npy'), G)
+
+#print("hessian")
+#hess = optimHess(optim$par, l_parallell)
+#print(hess)
+
+
+#hess_inv = solve(hess)
+#print(hess_inv)
+#npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
+
 
 mpi.close.Rslaves()
 mpi.quit()

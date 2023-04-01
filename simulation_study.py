@@ -37,12 +37,22 @@ for seed in range(seed_begin, seed_end):
     subprocess.run(f'python3 sim/sim.py {seed} {num_fams_per_year}', shell=True, check=True)
     end = time.monotonic()
     sys.stdout.write(f' done (took {get_time_str(end - begin)})\n')
+    seed_results_path = os.path.join(results_path, f'{seed:04d}')
+
+    print(seed_results_path)
+
+    if not os.path.exists(seed_results_path):
+        os.mkdir(seed_results_path)
+
+    command = f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r sim-output/npy_files_{seed:04d} {seed_results_path} &> {seed_results_path}/log.out'
+    print(command)
+    
     sys.stdout.write(f'Optimizing for seed {seed}...')
     sys.stdout.flush()
 
     try:
         begin = time.monotonic()
-        subprocess.run(f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r sim-output/npy_files_{seed:04d} &> {results_path}/{seed:04d}.out', shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
         end = time.monotonic()
         sys.stdout.write(f' done (took {get_time_str(end - begin)})\n')
         sys.stdout.flush()
