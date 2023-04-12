@@ -163,8 +163,8 @@ l_parallell = function(args){
 begin = proc.time()
 
 init = c(
-  log(0.51), # var_e
-  log(1.74), # var_g
+  log(1.74), # var_e
+  log(0.51), # var_g
   4.32, # k
   -20, # beta_0
   0.27, # beta_1
