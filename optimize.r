@@ -11,7 +11,7 @@ library(numDeriv)
 
 #library(addsimR)
 
-library(addsim)
+#library(addsim)
 
 # Prints names of packages that are loaded
 print(loadedNamespaces()[match("addsim", loadedNamespaces())])
