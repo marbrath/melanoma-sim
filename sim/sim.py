@@ -17,10 +17,10 @@ def corr_frailty(birthyears, genders, num_children):
     P = np.hstack([P_f, P_m])
 
     #var_g = 1.74
-    var_e = 1.74
+    var_e = 2
 
     #var_e = 0.51
-    var_g = 0.51
+    var_g = 4
 
 
     beta_0 = -35.70 #-25

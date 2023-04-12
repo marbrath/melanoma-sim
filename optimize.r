@@ -11,7 +11,7 @@ library(numDeriv)
 
 #library(addsimR)
 
-#library(addsim)
+library(addsim)
 
 # Prints names of packages that are loaded
 print(loadedNamespaces()[match("addsim", loadedNamespaces())])
@@ -163,8 +163,10 @@ l_parallell = function(args){
 begin = proc.time()
 
 init = c(
-  log(1.74), # var_e
-  log(0.51), # var_g
+  #log(1.74), # var_e
+  #log(0.51), # var_g
+  log(2), # var_e
+  log(4),
   4.32, # k
   -20, # beta_0
   0.27, # beta_1
