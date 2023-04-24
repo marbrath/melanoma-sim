@@ -3,19 +3,23 @@ import csv
 import itertools
 
 fam_events = np.load('npy_files_0001/fam_events.npy')
+num_fam_members = 10
 
-num_children = 2
-arr = np.zeros([2]*(2 + num_children))
+fam_events = fam_events.reshape((-1, num_fam_members))
+
+num_children = num_fam_members - 2
+arr = np.zeros([2]*(num_fam_members))
 
 for i in range(0, len(fam_events)):
 	idx = fam_events[i]
 	arr[tuple(idx)] += 1
 
-perm = list(itertools.product([0,1], repeat=10))
+
+perm = list(itertools.product([0,1], repeat=num_fam_members))
 
 
 
-for i in range(0,3):
+for i in range(0,num_fam_members - 1):
 	print('Num sick: ', i)
 
 	for p in perm:

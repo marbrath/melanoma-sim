@@ -142,10 +142,10 @@ l_parallell = function(args){
                     FUN=function(i) l_term(
                                             all_sick_ids[i],
                                             all_num_events[i],
-                                            all_ts[(4*(i-1)+1):(4*i)],
-                                            all_rs[(4*(i-1)+1):(4*i)],
-                                            all_bs[(4*(i-1)+1):(4*i)],
-                                            all_gs[(4*(i-1)+1):(4*i)],
+                                            all_ts[(10*(i-1)+1):(10*i)],
+                                            all_rs[(10*(i-1)+1):(10*i)],
+                                            all_bs[(10*(i-1)+1):(10*i)],
+                                            all_gs[(10*(i-1)+1):(10*i)],
                                             var_e_,
                                             var_g_,
                                             k_,
@@ -163,8 +163,10 @@ l_parallell = function(args){
 begin = proc.time()
 
 init = c(
-  log(0.51), # var_e
-  log(1.74), # var_g
+  #log(1.74), # switched var_g
+  #log(0.51), # switched var_e
+  log(0.51),
+  log(1.74),
   4.32, # k
   -20, # beta_0
   0.27, # beta_1
@@ -175,7 +177,7 @@ print(init)
 npySave(file.path(result_root_path, 'init.npy'), init)
 
 lower_ = c(-20, -20, 0.1, -40, -10, -10)
-upper_ = c(10, 10, 10, 25, 25, 25)
+upper_ = c(15, 10, 10, 25, 25, 25)
 
 optim = nlminb(init, object= l_parallell, lower = lower_, upper = upper_, control=list(eval.max = 2000))
 #optim = optim(init, l_parallell, method="BFGS", control = list(maxit=2000), hessian = TRUE)
@@ -185,6 +187,7 @@ print(end - begin)
 print(optim)
 
 if (optim$convergence == 0) {
+  #npySave(file.path(result_root_path, 'optim.npy'), c(optim$par[2], optim$par[1], optim$par[3], optim$par[4], optim$par[5], optim$par[6]))
   npySave(file.path(result_root_path, 'optim.npy'), optim$par)
 } else {
   npySave(file.path(result_root_path, 'optim.npy'), 0*optim$par)
@@ -195,14 +198,14 @@ if (optim$convergence == 0) {
 #print(G)
 #npySave(file.path(result_root_path, 'jac.npy'), G)
 
-print("hessian")
-hess = optimHess(optim$par, l_parallell)
+#print("hessian")
+#hess = optimHess(optim$par, l_parallell)
 #print(hess)
 
 
-hess_inv = solve(hess)
-print(hess_inv)
-npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
+#hess_inv = solve(hess)
+#print(hess_inv)
+#npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
 
 
 mpi.close.Rslaves()

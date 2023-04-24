@@ -6,7 +6,7 @@ import numpy as np
 import math
 import itertools
 
-num_children = 2
+num_children = 8
 family_size = 2 + num_children
 max_num_sick = 5
 

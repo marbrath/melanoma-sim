@@ -16,7 +16,7 @@ def corr_frailty(birthyears, genders, num_children):
 
     P = np.hstack([P_f, P_m])
 
-    var_g = 1.74
+    var_g =  1.74
     var_e = 0.51
     beta_0 = -35.70 #-25
     beta_1 = 0.27
@@ -37,9 +37,9 @@ def corr_frailty(birthyears, genders, num_children):
 
     z_g = np.matmul(P, u_g[:, :, None]).squeeze(-1)
     z_e = np.random.gamma(nu_e, 1/eta, (num_fam_per_year, 1)).repeat(family_size, axis=1)
-    #z = z_g + z_e
+    z = z_g + z_e
 
-    z = np.random.gamma(1/2, 2, (num_fam_per_year, 1)).repeat(family_size, axis=1)
+    #z = np.random.gamma(1/2, 2, (num_fam_per_year, 1)).repeat(family_size, axis=1)
 
     min_elem = 1850
 
@@ -62,7 +62,7 @@ def sim(seed, num_fam_per_year):
         #print('YEAR')
         #print(year)
 
-        max_children = 2
+        max_children = 8
 
         birthyears = np.repeat([[year]*2 + [year + 20]*max_children], num_fam_per_year, axis=0)
         #print(birthyears)
@@ -109,7 +109,7 @@ def sim(seed, num_fam_per_year):
     fam_genders = fam_genders.ravel().astype('int64')
     fam_birthyears = fam_birthyears.ravel().astype('int64')
     fam_lifetimes = fam_lifetimes.ravel().astype('int64')
-    fam_events_ = np.vstack(fam_events).ravel().astype('int64')
+    #fam_events_ = np.vstack(fam_events).ravel().astype('int64')
     fam_ids = (np.ones((family_size, num_families))*np.arange(num_families)[None]).T.ravel().astype('int64')
 
     event_bits = np.packbits(fam_events, bitorder='little', axis=1).astype('int64')
@@ -133,7 +133,7 @@ def sim(seed, num_fam_per_year):
 
 
     np.save(root_path + '/fam_num_children', fam_num_children)
-    np.save(root_path + '/fam_events', fam_events_)
+    np.save(root_path + '/fam_events', fam_events)
     np.save(root_path + '/genders', fam_genders)
     np.save(root_path + '/birthyears', fam_birthyears)
     np.save(root_path + '/lifetimes', fam_lifetimes)
