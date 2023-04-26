@@ -49,7 +49,7 @@ def corr_frailty(birthyears, genders, num_children):
 
     return ts
   
-def sim(seed, num_fam_per_year):
+def sim(seed, num_fam_per_year, max_children):
     fam_genders = []
     fam_birthyears = []
     fam_lifetimes = []
@@ -61,8 +61,6 @@ def sim(seed, num_fam_per_year):
     for year in range(1850, 2015 + 1 - 20):
         #print('YEAR')
         #print(year)
-
-        max_children = 8
 
         birthyears = np.repeat([[year]*2 + [year + 20]*max_children], num_fam_per_year, axis=0)
         #print(birthyears)
@@ -144,13 +142,14 @@ def sim(seed, num_fam_per_year):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage: sim.py <seed> <num_fam_per_year>')
+    if len(sys.argv) != 4:
+        print('Usage: sim.py <seed> <num_fam_per_year> <max_children>')
         sys.exit(1)
 
     seed = int(sys.argv[1])
     num_fam_per_year = int(sys.argv[2])
-    sim(seed, num_fam_per_year)
+    max_children = int(sys.argv[3])
+    sim(seed, num_fam_per_year, max_children)
 
 
     '''
