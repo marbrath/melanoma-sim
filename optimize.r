@@ -68,12 +68,13 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 }
 
 args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 2) {
-  stop("Usage: optimize.R <path/to/npy_files_xxx> <path/to/results/xxx")
+if (length(args) != 3) {
+  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx")
 }
 
-root_path = args[1]
-result_root_path = args[2]
+max_children = as.integer(args[1])
+root_path = args[2]
+result_root_path = args[3]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")
@@ -108,6 +109,7 @@ mpi.spawn.Rslaves(nslaves=nproc)
 }
 
 
+mpi.bcast.Robj2slave(max_children)
 mpi.bcast.Robj2slave(all_sick_ids)
 mpi.bcast.Robj2slave(all_num_events)
 mpi.bcast.Robj2slave(all_ts)
@@ -131,6 +133,7 @@ l_parallell = function(args){
     beta_1_ = args[5]
     beta_2_ = args[6]
 
+    fam_size = 2 + max_children
     n = length(all_sick_ids)
 
     l_parallell =
@@ -142,10 +145,10 @@ l_parallell = function(args){
                     FUN=function(i) l_term(
                                             all_sick_ids[i],
                                             all_num_events[i],
-                                            all_ts[(10*(i-1)+1):(10*i)],
-                                            all_rs[(10*(i-1)+1):(10*i)],
-                                            all_bs[(10*(i-1)+1):(10*i)],
-                                            all_gs[(10*(i-1)+1):(10*i)],
+                                            all_ts[(fam_size*(i-1)+1):(fam_size*i)],
+                                            all_rs[(fam_size*(i-1)+1):(fam_size*i)],
+                                            all_bs[(fam_size*(i-1)+1):(fam_size*i)],
+                                            all_gs[(fam_size*(i-1)+1):(fam_size*i)],
                                             var_e_,
                                             var_g_,
                                             k_,
