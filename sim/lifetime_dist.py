@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import scipy.interpolate    
+import scipy.interpolate
 
 mean_age = pd.read_csv('data/mean_lifetimes.csv', sep=';', decimal=',')
 mortality_by_year = pd.read_csv('data/distribution_both_1966.csv', sep=';', decimal=',')
@@ -39,7 +39,7 @@ def lifetime_sample(year, shape):
 if __name__ == '__main__':
 	import matplotlib.pyplot as plt
 	ts = lifetime_sample(1846, (10000,5)).ravel()
-	#print(ts)
+	print(ts)
 	plt.hist(ts, bins=30, density=True)
 	plt.plot(years[1:], cdf[1:] - cdf[:-1])
 	plt.show()

@@ -2,6 +2,7 @@ import numpy as np
 import math
 from permutation_fast import get_parent_matrices
 from lifetime_dist import lifetime_sample
+from fam_size_sampler import fam_size_sample
 import matplotlib.pyplot as plt
 #from lifelines import KaplanMeierFitter
 import sys
@@ -78,8 +79,9 @@ def sim(seed, num_fam_per_year, max_children):
 
         events = (lifetimes == time_to_melanoma)*1
 
-        num_children = np.random.randint(1, max_children + 1, num_fam_per_year) # todo: Use proper distribution
+        #num_children = np.random.randint(1, max_children + 1, num_fam_per_year) # todo: Use proper distribution
         #num_children = 2
+        num_children = fam_size_sample([num_fam_per_year]) - 2
 
         children_to_remove = np.arange(time_to_melanoma.shape[1])[None] > (num_children[:, None] + 1)
 
