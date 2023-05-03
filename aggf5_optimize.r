@@ -16,13 +16,40 @@ library(aggf5env)
 # Prints names of packages that are loaded
 print(loadedNamespaces()[match("aggf5env", loadedNamespaces())])
 
-l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
+l_term = function(sick_id, fam_events, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
+    n = length(ts)
+
+    ts_ = c(
+     ts[1:2][fam_events[1:2]],  # sick parents
+     ts[1:2][!fam_events[1:2]], # non-sick parents
+     ts[3:n][fam_events[3:n]],  # sick children
+     ts[3:n][!fam_events[3:n]]  # non-sick children
+    )
+    rs_ = c(
+     rs[1:2][fam_events[1:2]],  # sick parents
+     rs[1:2][!fam_events[1:2]], # non-sick parents
+     rs[3:n][fam_events[3:n]],  # sick children
+     rs[3:n][!fam_events[3:n]]  # non-sick children
+    )
+    bs_ = c(
+     bs[1:2][fam_events[1:2]],  # sick parents
+     bs[1:2][!fam_events[1:2]], # non-sick parents
+     bs[3:n][fam_events[3:n]],  # sick children
+     bs[3:n][!fam_events[3:n]]  # non-sick children
+    )
+    gs_ = c(
+     gs[1:2][fam_events[1:2]],  # sick parents
+     gs[1:2][!fam_events[1:2]], # non-sick parents
+     gs[3:n][fam_events[3:n]],  # sick children
+     gs[3:n][!fam_events[3:n]]  # non-sick children
+    )
+    sick_id_ = (2**sum(fam_events[1:2]) - 1) + 4*(2**sum(fam_events[3:n]) - 1)
 
     lhs = likelihood(
-      sick_id,
-      ts,
-      bs,
-      gs,
+      sick_id_,
+      ts_,
+      bs_,
+      gs_,
       var_e_,
       var_g_,
       beta_0_,
@@ -33,9 +60,9 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 
     rhs = likelihood(
       0,
-      rs,
-      bs,
-      gs,
+      rs_,
+      bs_,
+      gs_,
       var_e_,
       var_g_,
       beta_0_,
@@ -76,6 +103,7 @@ root_path = args[2]
 result_root_path = args[3]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
+all_fam_events = as.logical(npyLoad(file.path(root_path, 'fam_events.npy'), "integer"))
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")
 all_ts = npyLoad(file.path(root_path, 'lifetimes.npy'), "integer")
 all_rs = npyLoad(file.path(root_path, 'truncations.npy'), "integer")
@@ -110,6 +138,7 @@ mpi.spawn.Rslaves(nslaves=nproc)
 
 mpi.bcast.Robj2slave(max_children)
 mpi.bcast.Robj2slave(all_sick_ids)
+mpi.bcast.Robj2slave(all_fam_events)
 mpi.bcast.Robj2slave(all_num_events)
 mpi.bcast.Robj2slave(all_ts)
 mpi.bcast.Robj2slave(all_rs)
@@ -138,11 +167,12 @@ l_parallell = function(args){
     l_parallell =
         sum(
             unlist(unname(
-                #mpi.parLapply(
-                lapply(
+                mpi.parLapply(
+                #lapply(
                     1:n,
                     FUN=function(i) l_term(
                                             all_sick_ids[i],
+                                            all_fam_events[(fam_size*(i-1)+1):(fam_size*i)],
                                             all_num_events[i],
                                             all_ts[(fam_size*(i-1)+1):(fam_size*i)],
                                             all_rs[(fam_size*(i-1)+1):(fam_size*i)],
