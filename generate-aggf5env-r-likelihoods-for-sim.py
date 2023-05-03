@@ -105,6 +105,11 @@ class ExpressionGenerator:
 
         return func
 
+    def part_deriv(self, expr, args):
+        for arg in args:
+            expr = diff(expr, arg)
+
+        return expr
 
     def print_ccode(self):
         n = self.family_size
@@ -114,28 +119,38 @@ class ExpressionGenerator:
 
         a = self.S(t, b, g)
 
-        a_variants = [
-          [
-            a,
-            diff(a, t[2]),
-            diff(diff(a, t[2]), t[3]),
-            diff(diff(diff(a, t[2]), t[3]), t[4]),
-            diff(diff(diff(diff(a, t[2]), t[3]), t[4]), t[5]),
-          ],
-          [
-            diff(a, t[0]),
-            diff(diff(a, t[0]), t[2]),
-            diff(diff(diff(a, t[0]), t[2]), t[3]),
-            diff(diff(diff(diff(a, t[0]), t[2]), t[3]), t[4]),
-            diff(diff(diff(diff(diff(a, t[0]), t[2]), t[3]), t[4]), t[5]),
-          ],
-          [
-            diff(diff(a, t[0]), t[1]),
-            diff(diff(diff(a, t[0]), t[1]), t[2]),
-            diff(diff(diff(diff(a, t[0]), t[1]), t[2]), t[3]),
-            diff(diff(diff(diff(diff(a, t[0]), t[1]), t[2]), t[3]), t[4]),
-          ]
+        all_combs = [
+            [],
+            [2],
+            (2, 3),
+            (2, 3, 4),
+            (2, 3, 4, 5),
+            (2, 3, 4, 5, 6),
+            [0],
+            (0, 2),
+            (0, 2, 3),
+            (0, 2, 3, 4),
+            (0, 2, 3, 4, 5),
+            (0, 1),
+            (0, 1, 2),
+            (0, 1, 2, 3),
+            (0, 1, 2, 3, 4),
         ]
+
+        a_variants = {0: a}
+
+        for comb in all_combs:
+            id = sum(1 << i for i in comb)
+
+            a_variants[id] = self.part_deriv(a, (t[i] for i in comb))
+
+        param_args = '''  const double var_e,
+    const double var_g,
+    const double beta_0,
+    const double beta_1,
+    const double beta_2,
+    const double k
+'''
 
         args = '\n' \
         + \
@@ -145,47 +160,41 @@ class ExpressionGenerator:
         + \
         ''.join('  const double g_%d,\n' % i for i in range(1, n+1)) \
         + \
-  '''  const double var_e,
-  const double var_g,
-  const double beta_0,
-  const double beta_1,
-  const double beta_2,
-  const double k
-'''
+        param_args
+
         arg_names = \
-        ''.join('t_%d, ' % i for i in range(1, n+1)) \
+        ''.join('t[%d], ' % i for i in range(n)) \
         + \
-        ''.join('b_%d, ' % i for i in range(1, n+1)) \
+        ''.join('b[%d], ' % i for i in range(n)) \
         + \
-        ''.join('g_%d, ' % i for i in range(1, n+1)) \
+        ''.join('g[%d], ' % i for i in range(n)) \
         + \
         'var_e, var_g, beta_0, beta_1, beta_2, k'
 
-        print('''#include <cmath>
-#include <vector>
+        print('''#include "Rcpp.h"
+
+#include <cmath>
+#include <unordered_map>
 
 namespace
 {
 using namespace std;
 ''')
-        m = len(a_variants)
-        n = max((len(variant) for variant in a_variants))
-
-        for i, variants in zip(range(len(a_variants)), a_variants):
-            for j, l in zip(range(len(variants)), variants):
-                print('''
-double likelihood_%d_%d(%s) {
+        for id in a_variants:
+            print(
+        '''
+double likelihood_%d(%s) {
   return %s;
 }
-''' % (i, j, args, ccode(l))
-                )
+''' % (id, args, ccode(a_variants[id]))
+            )
 
-        variant_signatures = ('std::vector<Likelihood>{%s}' % ', '.join(('likelihood_%d_%d' % (i, j) for j in range(len(variant)))) for i, variant in zip(range(len(a_variants)), a_variants))
+        variant_signatures = ('{%d, likelihood_%d}' % (id, id) for id in a_variants)
 
         print('''
-using Likelihood = decltype(&likelihood_0_0);
+using Likelihood = decltype(&likelihood_0);
 
-const std::vector<std::vector<Likelihood>> likelihoods = {
+const std::unordered_map<uint32_t, Likelihood> likelihoods = {
   %s
 };
 }''' % ',\n  '.join(variant_signatures))
@@ -193,11 +202,15 @@ const std::vector<std::vector<Likelihood>> likelihoods = {
         print('''
 // [[Rcpp::export]]
 double likelihood(
-  const int i,
-  const int j,%s) {
-  return likelihoods.at(i).at(j)(%s);
+  const int sick_id,
+  const Rcpp::NumericVector& t,
+  const Rcpp::NumericVector& b,
+  const Rcpp::NumericVector& g,
+%s
+) {
+  return likelihoods.at(sick_id)(%s);
 }
-''' % (args, arg_names))
+''' % (param_args, arg_names))
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
