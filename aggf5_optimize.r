@@ -103,7 +103,7 @@ root_path = args[2]
 result_root_path = args[3]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
-all_fam_events = as.logical(npyLoad(file.path(root_path, 'fam_events.npy'), "integer"))
+all_fam_events = as.logical(npyLoad(file.path(root_path, 'all_fam_events.npy'), "integer"))
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")
 all_ts = npyLoad(file.path(root_path, 'lifetimes.npy'), "integer")
 all_rs = npyLoad(file.path(root_path, 'truncations.npy'), "integer")

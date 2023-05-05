@@ -109,7 +109,6 @@ def sim(seed, num_fam_per_year, max_children):
     fam_genders = fam_genders.ravel().astype('int64')
     fam_birthyears = fam_birthyears.ravel().astype('int64')
     fam_lifetimes = fam_lifetimes.ravel().astype('int64')
-    #fam_events_ = np.vstack(fam_events).ravel().astype('int64')
     fam_ids = (np.ones((family_size, num_families))*np.arange(num_families)[None]).T.ravel().astype('int64')
 
     event_bits = np.packbits(fam_events, bitorder='little', axis=1).astype('int64')
@@ -123,6 +122,8 @@ def sim(seed, num_fam_per_year, max_children):
     fam_num_events = fam_num_events.ravel().astype('int64')
     fam_num_children = fam_num_children.ravel().astype('int64')
     fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
+
+    all_fam_events = np.vstack(fam_events).ravel().astype('int64')
     
 
     root_path = 'sim-output/npy_files_%04d' % seed
@@ -134,6 +135,7 @@ def sim(seed, num_fam_per_year, max_children):
 
     np.save(root_path + '/fam_num_children', fam_num_children)
     np.save(root_path + '/fam_events', fam_events)
+    np.save(root_path + '/all_fam_events', all_fam_events)
     np.save(root_path + '/genders', fam_genders)
     np.save(root_path + '/birthyears', fam_birthyears)
     np.save(root_path + '/lifetimes', fam_lifetimes)
