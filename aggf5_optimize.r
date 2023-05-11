@@ -72,10 +72,6 @@ l_term = function(sick_id, fam_events, num_events, ts, rs, bs, gs, var_e_, var_g
     )
 
     if (is.nan(rhs) || rhs==0) {
-         #print('rhs = 0 or is.nan(rhs)')
-         #print(rhs)
-         #print(lhs)
-
          return(-1e06)
     }
 
@@ -212,31 +208,21 @@ lower_ = c(-20, -20, 0.1, -40, -10, -10)
 upper_ = c(15, 10, 10, 25, 25, 25)
 
 optim = nlminb(init, object= l_parallell, lower = lower_, upper = upper_, control=list(eval.max = 2000))
-#optim = optim(init, l_parallell, method="BFGS", control = list(maxit=2000), hessian = TRUE)
 
 end = proc.time()
 print(end - begin)
 print(optim)
 
 if (optim$convergence == 0) {
-  #npySave(file.path(result_root_path, 'optim.npy'), c(optim$par[2], optim$par[1], optim$par[3], optim$par[4], optim$par[5], optim$par[6]))
   npySave(file.path(result_root_path, 'optim.npy'), optim$par)
 } else {
   npySave(file.path(result_root_path, 'optim.npy'), 0*optim$par)
 }
 
-#print("grad")
-#G = grad(l_parallell, optim$par)
-#print(G)
-#npySave(file.path(result_root_path, 'jac.npy'), G)
-
-#print("hessian")
 hess = optimHess(optim$par, l_parallell)
-#print(hess)
 
 
 hess_inv = solve(hess)
-#print(hess_inv)
 npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
 
 
