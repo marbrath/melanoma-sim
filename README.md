@@ -10,6 +10,13 @@ python simulate_data.py <num fams per year> <max children> <seed begin> <seed en
 python simulation_optimize.py <max children> <seed begin> <seed end>
 ```
 
+### addsim reordered
+Flytter alle syke så de ligger først.
+```bash
+# antar at man har kjørt det over for addsim først
+python simulation_reordered_optimize.py <max children> <seed begin> <seed end>
+```
+
 ### aggf5
 __Funker foreløpig bare med 5 barn.__
 
