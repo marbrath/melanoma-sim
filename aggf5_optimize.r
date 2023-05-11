@@ -231,13 +231,13 @@ if (optim$convergence == 0) {
 #npySave(file.path(result_root_path, 'jac.npy'), G)
 
 #print("hessian")
-#hess = optimHess(optim$par, l_parallell)
+hess = optimHess(optim$par, l_parallell)
 #print(hess)
 
 
-#hess_inv = solve(hess)
+hess_inv = solve(hess)
 #print(hess_inv)
-#npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
+npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
 
 
 mpi.close.Rslaves()
