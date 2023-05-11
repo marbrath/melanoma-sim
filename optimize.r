@@ -44,6 +44,7 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
       beta_2_,
       k_
     )
+    #print(c('sickid', sick_id, 'ts', ts, 'bs', bs, 'gs', gs))
 
     if (is.nan(rhs) || rhs==0) {
          #print('rhs = 0 or is.nan(rhs)')
@@ -202,13 +203,13 @@ if (optim$convergence == 0) {
 #npySave(file.path(result_root_path, 'jac.npy'), G)
 
 #print("hessian")
-#hess = optimHess(optim$par, l_parallell)
+hess = optimHess(optim$par, l_parallell)
 #print(hess)
 
 
-#hess_inv = solve(hess)
+hess_inv = solve(hess)
 #print(hess_inv)
-#npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
+npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
 
 
 mpi.close.Rslaves()
