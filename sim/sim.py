@@ -112,12 +112,15 @@ def sim(seed, num_fam_per_year, max_children):
     fam_ids = (np.ones((family_size, num_families))*np.arange(num_families)[None]).T.ravel().astype('int64')
 
     event_bits = np.packbits(fam_events, bitorder='little', axis=1).astype('int64')
-    assert(event_bits.shape[1] <= 2) # we here assume that family_size <= 16, which it is not
+    assert(event_bits.shape[1] <= 3) # we here assume that family_size <= 24, which it is not
 
     fam_sick_ids = event_bits[:, 0]
 
-    if event_bits.shape[1] == 2:
+    if event_bits.shape[1] >= 2:
         fam_sick_ids += (event_bits[:, 1] << 8)
+
+    if event_bits.shape[1] >= 3:
+        fam_sick_ids += (event_bits[:, 2] << 16)
 
     fam_num_events = fam_num_events.ravel().astype('int64')
     fam_num_children = fam_num_children.ravel().astype('int64')
