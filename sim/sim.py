@@ -126,8 +126,7 @@ def sim(seed, num_fam_per_year, max_children):
     all_fam_events = np.vstack(fam_events).ravel().astype('int64')
     
 
-    root_path = 'sim-output/npy_files_%04d' % seed
-    #root_path = 'npy_files_%04d' % seed
+    root_path = 'sim-output/npy_files_%04d_%02d' % (seed, max_children)
 
     if not os.path.exists(root_path):
         os.mkdir(root_path)

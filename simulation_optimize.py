@@ -32,12 +32,12 @@ def get_time_str(duration):
 
 
 for seed in range(seed_begin, seed_end):
-    seed_results_path = os.path.join(results_path, f'{seed:04d}')
+    seed_results_path = os.path.join(results_path, f'{seed:04d}_{max_children:02d}')
 
     if not os.path.exists(seed_results_path):
         os.mkdir(seed_results_path)
 
-    command = f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r {max_children} sim-output/npy_files_{seed:04d} {seed_results_path} &> {seed_results_path}/log.out'
+    command = f'mpirun -np 1 --use-hwthread-cpus Rscript optimize.r {max_children} sim-output/npy_files_{seed:04d}_{max_children:02d} {seed_results_path} &> {seed_results_path}/log.out'
 
     sys.stdout.write(f'Optimizing for seed {seed}...')
     sys.stdout.flush()

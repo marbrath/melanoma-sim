@@ -174,7 +174,7 @@ def read_sick_ids(seeds):
     all_sick_ids = set()
 
     for seed in seeds:
-        path = os.path.join('sim-output', f'npy_files_{seed:04d}', 'sick_ids.npy')
+        path = os.path.join('sim-output', f'npy_files_{seed:04d}_{max_children:02d}', 'sick_ids.npy')
         sick_ids = np.load(path)
         all_sick_ids = all_sick_ids.union({*sick_ids})
 
