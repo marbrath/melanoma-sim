@@ -210,10 +210,10 @@ if (optim$convergence == 0) {
   npySave(file.path(result_root_path, 'optim.npy'), 0*optim$par)
 }
 
-hess = optimHess(optim$par, l_parallell)
+#hess = optimHess(optim$par, l_parallell)
 
-hess_inv = solve(hess)
-npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
+#hess_inv = solve(hess)
+#npySave(file.path(result_root_path, 'hessian_inv'), hess_inv)
 
 mpi.close.Rslaves()
 mpi.quit()
