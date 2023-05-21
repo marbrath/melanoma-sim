@@ -63,24 +63,19 @@ def sim(seed, num_fam_per_year, max_children):
         #print('YEAR')
         #print(year)
 
-        birthyears = np.repeat([[year]*2 + [year + 20]*max_children], num_fam_per_year, axis=0)
-        #print(birthyears)
+        birthyears = np.random.uniform(year + 20, year + 50, (num_fam_per_year, 2 + max_children))
+        birthyears[:, :2] = year
+        birthyears[:, 2:].sort(axis=1)
 
         genders = np.hstack((np.repeat([[0, 1]], num_fam_per_year, axis=0), np.random.binomial(1, 0.5, (num_fam_per_year, max_children))))
 
         time_to_death = lifetime_sample(year, (num_fam_per_year, 2 + max_children))
         time_to_melanoma = corr_frailty(birthyears, genders, max_children)
 
-        #print(time_to_death)
-        #print(time_to_melanoma)
-        #print((2016 - birthyears)*12)
-
         lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears)*12)
 
         events = (lifetimes == time_to_melanoma)*1
 
-        #num_children = np.random.randint(1, max_children + 1, num_fam_per_year) # todo: Use proper distribution
-        #num_children = 2
         num_children = fam_size_sample([num_fam_per_year]) - 2
 
         children_to_remove = np.arange(time_to_melanoma.shape[1])[None] > (num_children[:, None] + 1)
