@@ -93,7 +93,7 @@ class ExpressionGenerator:
         a_variants = {0: a}
 
         for num_sick_parents in range(min(2, self.max_num_sick) + 1):
-            for num_sick_children in range(0, self.max_num_sick - num_sick_parents + 1):_
+            for num_sick_children in range(0, self.max_num_sick - num_sick_parents + 1):
                 comb = list(range(num_sick_parents)) + list(range(2, num_sick_children + 2))
                 id = sum(1 << i for i in comb)
 
