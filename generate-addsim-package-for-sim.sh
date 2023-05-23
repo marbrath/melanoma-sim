@@ -6,7 +6,7 @@ if [ "$#" -ne 3 ]; then
 fi
 
 python3 generate-r-likelihoods-for-sim.py $1 $2 $3 > likelihoods.cpp
-rm -rf addsim*
-Rscript generate-addsim-package.r
-R CMD build addsim
-R CMD INSTALL addsim*.tar.gz
+rm -rf addsim$1*
+Rscript generate-addsim-package.r $1
+R CMD build addsim$1
+R CMD INSTALL addsim$1*.tar.gz

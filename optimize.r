@@ -3,19 +3,18 @@ library(Rmpi)
 library(numDeriv)
 
 
-#try(detach("package:addsimR", unload=TRUE))
-#detach("package:addsimR", unload=TRUE)
+args = commandArgs(trailingOnly=TRUE)
+if (length(args) != 3) {
+  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx")
+}
 
-#detach("package:addsim", unload=TRUE)
-#detach("package:addsimR", unload=TRUE)
+max_children = as.integer(args[1])
+root_path = args[2]
+result_root_path = args[3]
 
-#library(addsimR)
-
-library(addsim)
-
-# Prints names of packages that are loaded
-print(loadedNamespaces()[match("addsim", loadedNamespaces())])
-print(loadedNamespaces()[match("addsimR", loadedNamespaces())])
+addsim_package_name = sprintf("addsim%d", max_children)
+library(addsim_package_name, character.only=TRUE)
+print(loadedNamespaces()[match(addsim_package_name, loadedNamespaces())])
 
 l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
 
@@ -67,15 +66,6 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 
     return(res)
 }
-
-args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 3) {
-  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx")
-}
-
-max_children = as.integer(args[1])
-root_path = args[2]
-result_root_path = args[3]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")

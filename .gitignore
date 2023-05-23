@@ -19,6 +19,7 @@ data
 lhs-scripts
 km_files
 addsim
+addsim*
 results
 npy_files*
 slurm-files
