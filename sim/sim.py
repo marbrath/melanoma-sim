@@ -78,7 +78,8 @@ def sim(seed, num_fam_per_year, max_children):
 
         num_children = fam_size_sample([num_fam_per_year]) - 2
 
-        children_to_remove = np.arange(time_to_melanoma.shape[1])[None] > (num_children[:, None] + 1)
+        children_to_remove = (np.arange(time_to_melanoma.shape[1])[None] > (num_children[:, None] + 1)) | (birthyears > 2016)
+        num_children = max_children - children_to_remove.sum(axis=1)
 
         birthyears[children_to_remove] = 0
         lifetimes[children_to_remove] = 0
@@ -122,7 +123,7 @@ def sim(seed, num_fam_per_year, max_children):
     fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
 
     all_fam_events = np.vstack(fam_events).ravel().astype('int64')
-    
+
 
     root_path = 'sim-output/npy_files_%04d_%02d' % (seed, max_children)
 
