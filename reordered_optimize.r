@@ -2,8 +2,18 @@ library(RcppCNPy)
 library(Rmpi)
 library(numDeriv)
 
+args = commandArgs(trailingOnly=TRUE)
+if (length(args) != 3) {
+  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx")
+}
 
-library(addsim)
+max_children = as.integer(args[1])
+root_path = args[2]
+result_root_path = args[3]
+
+addsim_package_name = sprintf("addsim%d", max_children)
+library(addsim_package_name, character.only=TRUE)
+print(loadedNamespaces()[match(addsim_package_name, loadedNamespaces())])
 
 print(loadedNamespaces()[match("addsim", loadedNamespaces())])
 
@@ -79,15 +89,6 @@ l_term = function(sick_id, fam_events, num_events, ts, rs, bs, gs, var_e_, var_g
 
     return(res)
 }
-
-args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 3) {
-  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx")
-}
-
-max_children = as.integer(args[1])
-root_path = args[2]
-result_root_path = args[3]
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
 all_fam_events = as.logical(npyLoad(file.path(root_path, 'all_fam_events.npy'), "integer"))
