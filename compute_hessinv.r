@@ -3,10 +3,27 @@ library(Rmpi)
 library(numDeriv)
 
 
-library(addsim)
+args = commandArgs(trailingOnly=TRUE)
+if (length(args) != 3 + 6) {
+  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx> <log var_e> <log var_g> <k> <beta_0> <beta_1> <beta_2>")
+}
 
-# Prints names of packages that are loaded
-print(loadedNamespaces()[match("addsim", loadedNamespaces())])
+max_children = as.integer(args[1])
+root_path = args[2]
+result_root_path = args[3]
+
+param = c(
+	  as.double(args[4]),
+	  as.double(args[5]),
+	  as.double(args[6]),
+	  as.double(args[7]),
+	  as.double(args[8]),
+	  as.double(args[9])
+)
+
+addsim_package_name = sprintf("addsim%d", max_children)
+library(addsim_package_name, character.only=TRUE)
+print(loadedNamespaces()[match(addsim_package_name, loadedNamespaces())])
 
 l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_) {
     lhs = likelihood(
@@ -57,24 +74,6 @@ l_term = function(sick_id, num_events, ts, rs, bs, gs, var_e_, var_g_, k_, beta_
 
     return(res)
 }
-
-args = commandArgs(trailingOnly=TRUE)
-if (length(args) != 3 + 6) {
-  stop("Usage: optimize.R <max children> <path/to/npy_files_xxx> <path/to/results/xxx> <log var_e> <log var_g> <k> <beta_0> <beta_1> <beta_2>")
-}
-
-max_children = as.integer(args[1])
-root_path = args[2]
-result_root_path = args[3]
-
-param = c(
-	  as.double(args[4]),
-	  as.double(args[5]),
-	  as.double(args[6]),
-	  as.double(args[7]),
-	  as.double(args[8]),
-	  as.double(args[9])
-)
 
 all_sick_ids = npyLoad(file.path(root_path, 'sick_ids.npy'), "integer")
 all_num_events = npyLoad(file.path(root_path, 'all_num_events.npy'), "integer")

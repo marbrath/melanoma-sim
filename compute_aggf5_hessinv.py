@@ -13,7 +13,7 @@ max_children = int(sys.argv[1])
 seed_begin = int(sys.argv[2])
 seed_end = int(sys.argv[3])
 
-results_path = 'sim-output/reordered_results'
+results_path = 'sim-output/aggf5_results'
 if not os.path.exists(results_path):
     os.mkdir(results_path)
 
@@ -43,7 +43,7 @@ for seed in range(seed_begin, seed_end):
     except FileNotFoundError:
         continue
 
-    command = f'mpirun -np 1 --use-hwthread-cpus Rscript compute_reordered_hessinv.r {max_children} sim-output/npy_files_{seed:04d}_{max_children:02d} {seed_results_path} {" ".join(map(str, optim))} &> {seed_results_path}/hesslog.out'
+    command = f'mpirun -np 1 --use-hwthread-cpus Rscript compute_aggf5_hessinv.r {max_children} sim-output/npy_files_{seed:04d}_{max_children:02d} {seed_results_path} {" ".join(map(str, optim))} &> {seed_results_path}/hesslog.out'
 
     sys.stdout.write(f'Computing hessian for seed {seed}...')
     sys.stdout.flush()
