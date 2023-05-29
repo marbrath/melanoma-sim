@@ -186,10 +186,13 @@ def read_sick_ids(seeds):
         sick_ids = np.load(path)
         all_sick_ids = all_sick_ids.union({*sick_ids})
 
-        # shuffled sim
-        path = os.path.join('sim-output', f'shuffle_npy_files_{seed:04d}_{max_children:02d}', 'sick_ids.npy')
-        sick_ids = np.load(path)
-        all_sick_ids = all_sick_ids.union({*sick_ids})
+        try:
+            # shuffled sim
+            path = os.path.join('sim-output', f'shuffle_npy_files_{seed:04d}_{max_children:02d}', 'sick_ids.npy')
+            sick_ids = np.load(path)
+            all_sick_ids = all_sick_ids.union({*sick_ids})
+        except FileNotFoundError:
+            pass
 
     return all_sick_ids
 
