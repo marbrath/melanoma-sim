@@ -51,6 +51,8 @@ def corr_frailty(birthyears, genders, num_children):
     return ts
   
 def sim(seed, num_fam_per_year, max_children):
+    np.random.seed(seed)
+
     fam_genders = []
     fam_birthyears = []
     fam_lifetimes = []
