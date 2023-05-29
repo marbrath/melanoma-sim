@@ -12,7 +12,7 @@ max_children = int(sys.argv[1])
 seed_begin = int(sys.argv[2])
 seed_end = int(sys.argv[3])
 
-results_path = 'sim-output/results'
+results_path = 'sim-output/shuffled_results'
 if not os.path.exists(results_path):
     os.mkdir(results_path)
 
