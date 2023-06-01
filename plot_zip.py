@@ -20,7 +20,7 @@ def read_results(root_path):
     return all_optim, low, up
 
 
-def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, arg_name):
+def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, color):
     index = np.argsort((mid_points - true_value)**2)
     y_values = np.linspace(0, 100, len(index))
 
@@ -31,22 +31,19 @@ def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, arg_name):
                 upper_bounds[index[i]]
             ],
             [y, y],
-            color='C2' if y < 95 else 'C4'
+            color=color
         )
 
-    plt.axvline(true_value, y_values[0], y_values[-1])
-    plt.plot(mid_points[index], y_values, '.')
-    plt.title(arg_name)
 
 
 if __name__ == '__main__':
     args = {
-        #0: 'var_e',
-        #1: 'var_g',
-        #2: 'k',
-        #3: 'beta_0',
+        0: 'var_e',
+        1: 'var_g',
+        2: 'k',
+        3: 'beta_0',
         4: 'beta_1',
-        #5: 'beta_2'
+        5: 'beta_2'
     }
 
     var_e_ = 0.51
@@ -58,24 +55,30 @@ if __name__ == '__main__':
     true_values = [var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_]
 
     #dataset_name = 'aggf5'
-    #estimates, lower_bounds, upper_bounds = read_results('sim-output/aggf5_results')
 
     #dataset_name = 'l-aggf5'
     #estimates, lower_bounds, upper_bounds = read_results('sim-output/l-aggf5_results')
 
-    dataset_name = 'l-aggf18 reordered'
-    estimates, lower_bounds, upper_bounds = read_results('sim-output/l-aggf18_results/reordered_results')
+    results = {
+        'aggf5': read_results('sim-output/aggf5_results'),
+        'l-aggf18 reordered': np.stack(read_results('sim-output/l-aggf18_results/reordered_results'))
+    }
 
     #dataset_name = 'l-aggf18 shuffled'
     #estimates, lower_bounds, upper_bounds = read_results('sim-output/l-aggf18_results/shuffled_results')
 
     for arg_idx in args:
         plt.figure()
-        plot_zip(
-            estimates[arg_idx],
-            lower_bounds[arg_idx],
-            upper_bounds[arg_idx],
-            true_values[arg_idx],
-            f'{dataset_name} {args[arg_idx]}'
-        )
+        for i, dataset_name in enumerate(results):
+            estimates, lower_bounds, upper_bounds = results[dataset_name]
+
+            plot_zip(
+                estimates[arg_idx],
+                lower_bounds[arg_idx],
+                upper_bounds[arg_idx],
+                true_values[arg_idx],
+                f'C{i}'
+            )
+        plt.axvline(true_values[arg_idx], 0, 100)
+        plt.title(args[arg_idx])
     plt.show()
