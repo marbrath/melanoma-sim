@@ -26,6 +26,7 @@ for seedname in next(os.walk(result_root))[1]:
         hess_inv = np.load(os.path.join(result_path, 'hessian_inv'))
         all_hess_inv.append(hess_inv.diagonal())
     except:
+        print(f'{seedname} missing')
         pass
 
 print(len(all_optim))
