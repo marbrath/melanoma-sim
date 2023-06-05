@@ -1,26 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+from result_summarizer import ResultSummarizer
 
 
-root_path = 'sim-output/aggf5_results'
-
-
-def read_results(root_path):
-    all_optim = np.transpose(np.load(os.path.join(root_path, 'all_optim.npy')))
-    all_hess_inv = np.sqrt(np.transpose(np.load(os.path.join(root_path, 'all_hess_inv.npy'))))
-
-    low = all_optim - 1.96*all_hess_inv
-    up = all_optim + 1.96*all_hess_inv
-
-    all_optim[:2] = np.exp(all_optim[:2])
-    low[:2] = np.exp(low[:2])
-    up[:2] = np.exp(up[:2])
-
-    return all_optim, low, up
-
-
-def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, color):
+def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, color, label=None):
     index = np.argsort((mid_points - true_value)**2)
     y_values = np.linspace(0, 100, len(index))
 
@@ -31,9 +14,9 @@ def plot_zip(mid_points, lower_bounds, upper_bounds, true_value, color):
                 upper_bounds[index[i]]
             ],
             [y, y],
-            color=color
+            color=color,
+            label=label if i == 0 else None
         )
-
 
 
 if __name__ == '__main__':
@@ -54,31 +37,37 @@ if __name__ == '__main__':
     beta_2_ = 0.05
     true_values = [var_e_, var_g_, k_, beta_0_, beta_1_, beta_2_]
 
-    #dataset_name = 'aggf5'
-
-    #dataset_name = 'l-aggf5'
-    #estimates, lower_bounds, upper_bounds = read_results('sim-output/l-aggf5_results')
+    aggf5_results = ResultSummarizer('sim-output/aggf')
+    laggf5_results = ResultSummarizer('sim-output/results5')
+    laggf18_results = ResultSummarizer('sim-output/results18')
+    laggf18_reordered_results = ResultSummarizer('sim-output/results-reordered')
+    laggf18_shuffled_results = ResultSummarizer('sim-output/results-shuffled')
 
     results = {
-        'aggf5': read_results('sim-output/aggf5_results'),
-        'l-aggf18 reordered': np.stack(read_results('sim-output/l-aggf18_results/reordered_results'))
+        'aggf5': ResultSummarizer('sim-output/aggf'),
+        #'laggf5': ResultSummarizer('sim-output/results5'),
+        'laggf18': ResultSummarizer('sim-output/results18'),
+        #'laggf18-reordered': ResultSummarizer('sim-output/results-reordered'),
+        #'laggf18-shuffled': ResultSummarizer('sim-output/results-shuffled')
     }
-
-    #dataset_name = 'l-aggf18 shuffled'
-    #estimates, lower_bounds, upper_bounds = read_results('sim-output/l-aggf18_results/shuffled_results')
 
     for arg_idx in args:
         plt.figure()
         for i, dataset_name in enumerate(results):
-            estimates, lower_bounds, upper_bounds = results[dataset_name]
+            result = results[dataset_name]
+            estimates = result.estimates
+            lower_bounds = result.low
+            upper_bounds = result.up
 
             plot_zip(
                 estimates[arg_idx],
                 lower_bounds[arg_idx],
                 upper_bounds[arg_idx],
                 true_values[arg_idx],
-                f'C{i}'
+                f'C{i}',
+                label=dataset_name
             )
         plt.axvline(true_values[arg_idx], 0, 100)
         plt.title(args[arg_idx])
+        plt.legend()
     plt.show()
