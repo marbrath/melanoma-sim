@@ -1,6 +1,7 @@
 import numpy as np
 import math
 from permutation_fast import get_parent_matrices
+from permutation_slow import get_symmetric_parent_matrices
 from lifetime_dist import lifetime_sample
 from fam_size_sampler import fam_size_sample
 import matplotlib.pyplot as plt
@@ -11,7 +12,9 @@ import os
 def corr_frailty(birthyears, genders, num_children):
     family_size = 2 + num_children
 
-    P_f, P_m = get_parent_matrices(family_size)
+    begin = time.time()
+    P_f, P_m = get_symmetric_parent_matrices(family_size)
+    end = time.time()
     P_f = P_f[:family_size]
     P_m = P_m[:family_size]
 
