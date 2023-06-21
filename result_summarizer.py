@@ -48,6 +48,9 @@ class ResultSummarizer:
         all_optim = np.transpose(np.load(os.path.join(root_path, 'all_optim.npy')))
         all_hess_inv = np.sqrt(np.transpose(np.load(os.path.join(root_path, 'all_hess_inv.npy'))))
 
+        self.centiles = np.abs((all_optim - true_values[:, None])/all_hess_inv)
+        self.centiles[:2] = np.abs((all_optim[:2] - np.log(true_values[:2, None]))/all_hess_inv[:2])
+
         low[:2] = np.exp(all_optim[:2] - 1.96*all_hess_inv[:2])
         up[:2] = np.exp(all_optim[:2] + 1.96*all_hess_inv[:2])
 
