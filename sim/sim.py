@@ -7,40 +7,55 @@ from fam_size_sampler import fam_size_sample
 import matplotlib.pyplot as plt
 #from lifelines import KaplanMeierFitter
 import sys
+import time
 import os
+import torch
+
+P = None
+gi_dist = None
 
 def corr_frailty(birthyears, genders, num_children):
+    global P, gi_dist
+    device = torch.device('cuda')
+    dtype = torch.float32
     family_size = 2 + num_children
 
-    begin = time.time()
-    P_f, P_m = get_symmetric_parent_matrices(family_size)
-    end = time.time()
-    P_f = P_f[:family_size]
-    P_m = P_m[:family_size]
-
-    P = np.hstack([P_f, P_m])
-
-    var_g =  1.74
+    var_g = 1.74
     var_e = 0.51
-    beta_0 = -35.70 #-25
+    beta_0 = -35.70  # -25
     beta_1 = 0.27
     beta_2 = 0.05
     k = 4.32
 
-    family_size = P.shape[0]
+    var_sum = var_e + var_g
+    eta = 1 / var_sum
+    nu_e = var_e / var_sum ** 2
+    nu_g = var_g / var_sum ** 2
+
+    if P is None:
+        P_f, P_m = get_symmetric_parent_matrices(family_size)
+        P_f = P_f[:family_size]
+        P_m = P_m[:family_size]
+
+        P = torch.tensor(np.hstack([P_f, P_m]), device=device, dtype=dtype)
+
+        family_size = P.shape[0]
+        num_genes = P.shape[1]
+
+        nu_gi = nu_g/(num_genes/2)
+
+        gi_dist = torch.distributions.gamma.Gamma(
+            torch.tensor(nu_gi, dtype=dtype, device=device),
+            torch.tensor(eta, dtype=dtype, device=device)
+        )
+
     num_genes = P.shape[1]
 
-    var_sum = var_e + var_g
-    eta = 1/var_sum
-    nu_e = var_e/var_sum**2
-    nu_g = var_g/var_sum**2
-    nu_gi = nu_g/(num_genes/2)
-
     num_fam_per_year = birthyears.shape[0]
-    u_g = np.random.gamma(nu_gi, 1/eta, (num_fam_per_year, num_genes))
+    u_g = gi_dist.sample((num_fam_per_year, num_genes))
 
-    z_g = np.matmul(P, u_g[:, :, None]).squeeze(-1)
-    z_e = np.random.gamma(nu_e, 1/eta, (num_fam_per_year, 1)).repeat(family_size, axis=1)
+    z_g = torch.matmul(P, u_g[:, :, None]).squeeze(-1).cpu().numpy()
+    z_e = np.random.gamma(nu_e, 1/eta, (num_fam_per_year, 1))
     z = z_g + z_e
 
     #z = np.random.gamma(1/2, 2, (num_fam_per_year, 1)).repeat(family_size, axis=1)
@@ -55,6 +70,7 @@ def corr_frailty(birthyears, genders, num_children):
   
 def sim(seed, num_fam_per_year, max_children):
     np.random.seed(seed)
+    torch.random.seed()
 
     fam_genders = []
     fam_birthyears = []
@@ -65,9 +81,7 @@ def sim(seed, num_fam_per_year, max_children):
     fam_frailties = []
 
     for year in range(1850, 2015 + 1 - 20):
-        #print('YEAR')
-        #print(year)
-
+        begin = time.time()
         birthyears = np.random.uniform(year + 20, year + 50, (num_fam_per_year, 2 + max_children))
         birthyears[:, :2] = year
         birthyears[:, 2:].sort(axis=1)
@@ -75,7 +89,18 @@ def sim(seed, num_fam_per_year, max_children):
         genders = np.hstack((np.repeat([[0, 1]], num_fam_per_year, axis=0), np.random.binomial(1, 0.5, (num_fam_per_year, max_children))))
 
         time_to_death = lifetime_sample(year, (num_fam_per_year, 2 + max_children))
-        time_to_melanoma = corr_frailty(birthyears, genders, max_children)
+        time_to_melanoma = np.empty_like(time_to_death)
+        max_frailty_batch_size = 1800
+        num_frailty_batches = (num_fam_per_year - 1)//max_frailty_batch_size + 1
+
+        for i in range(num_frailty_batches):
+            begin_i = (i * num_fam_per_year)//num_frailty_batches
+            end_i = ((i + 1) * num_fam_per_year)//num_frailty_batches
+
+            fbegin = time.time()
+            time_to_melanoma[begin_i:end_i] = corr_frailty(birthyears[begin_i:end_i], genders[begin_i:end_i], max_children)
+            fend = time.time()
+            #print(f'frailty took {(fend - fbegin)*1e3:.2f}ms')
 
         lifetimes = np.minimum(np.minimum(time_to_death, time_to_melanoma), (2016 - birthyears)*12)
 
@@ -97,6 +122,8 @@ def sim(seed, num_fam_per_year, max_children):
         fam_lifetimes.append(lifetimes)
         fam_events.append(events)
         fam_num_events.append(events.sum(axis=1))
+        end = time.time()
+        #print(f'{year} took {(end - begin)*1e3:.2f}ms')
 
     fam_genders = np.vstack(fam_genders)
     fam_birthyears = np.vstack(fam_birthyears)
@@ -156,8 +183,9 @@ if __name__ == '__main__':
     seed = int(sys.argv[1])
     num_fam_per_year = int(sys.argv[2])
     max_children = int(sys.argv[3])
-    sim(seed, num_fam_per_year, max_children)
 
+    with torch.inference_mode():
+        sim(seed, num_fam_per_year, max_children)
 
     '''
     fam_events = fam_events.ravel().astype('int64')
