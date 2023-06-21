@@ -26,6 +26,7 @@ def truncate_sim(seed, in_max_children, out_max_children):
     fam_events = fam_events[:, :out_fam_size]
     fam_birthyears = fam_birthyears[:, :out_fam_size]
     fam_lifetimes = fam_lifetimes[:, :out_fam_size]
+    fam_num_events = fam_events.sum(axis=1)
 
     fam_genders = fam_genders.ravel().astype('int64')
     fam_birthyears = fam_birthyears.ravel().astype('int64')
@@ -44,9 +45,11 @@ def truncate_sim(seed, in_max_children, out_max_children):
     fam_truncation_times = (fam_lifetimes.ravel()*0).astype('int64')
 
     all_fam_events = np.vstack(fam_events).ravel().astype('int64')
+    fam_num_events = fam_num_events.ravel().astype('int64')
 
     np.save(root_path + '/fam_events', fam_events)
     np.save(root_path + '/all_fam_events', all_fam_events)
+    np.save(root_path + '/all_num_events', fam_num_events)
     np.save(root_path + '/genders', fam_genders)
     np.save(root_path + '/birthyears', fam_birthyears)
     np.save(root_path + '/lifetimes', fam_lifetimes)
