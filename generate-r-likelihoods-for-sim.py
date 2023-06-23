@@ -89,7 +89,7 @@ class ExpressionGenerator:
         a = self.S(t, b, g)
 
         indices = range(len(t))
-        all_combs = itertools.chain(*(itertools.combinations(indices, i) for i in range(self.max_num_sick)))
+        all_combs = itertools.chain(*(itertools.combinations(indices, i) for i in range(self.max_num_sick + 1)))
         a_variants = {0: a}
 
         for num_sick_parents in range(min(2, self.max_num_sick) + 1):
