@@ -3,7 +3,7 @@ import os
 
 
 class ResultSummarizer:
-    def __init__(self, root_path):
+    def __init__(self, root_path, skip_first_sigma_e=False):
         all_optim = np.transpose(np.load(os.path.join(root_path, 'all_optim.npy')))
         all_hess_inv = np.sqrt(np.transpose(np.load(os.path.join(root_path, 'all_hess_inv.npy'))))
 
@@ -34,12 +34,19 @@ class ResultSummarizer:
         # average mod_se
         all_hess_inv[:2, :] = all_optim[:2, :]*all_hess_inv[:2, :]
         mod_se = np.sqrt(np.mean(all_hess_inv**2, axis=1))
-        self.mod_se = mod_se
         self.mcse_mod_se = np.std(all_hess_inv**2, axis=1)/np.sqrt(4*n_sim*mod_se**2)
+
+        if skip_first_sigma_e:
+            mod_se[0] = np.sqrt(np.mean(all_hess_inv[0, 1:]**2))
+            self.mcse_mod_se[0] = np.std(all_hess_inv[0, 1:] ** 2) / np.sqrt(4 * n_sim * mod_se[0] ** 2)
+        self.mod_se = mod_se
 
         # mod_se_error
         self.mod_se_error = 100*(mod_se/emp_se - 1)
         self.mcse_mod_se_error = 100*(mod_se/emp_se)*np.sqrt(np.std(all_hess_inv**2, axis=1)**2/(4*n_sim*mod_se**4) + 1/(2*(n_sim-1)))
+
+        if skip_first_sigma_e:
+            self.mcse_mod_se_error[0] = 100 * (mod_se[0] / emp_se[0]) * np.sqrt(np.std(all_hess_inv[0, 1:]**2) ** 2 / (4 * n_sim * mod_se[0] ** 4) + 1 / (2 * (n_sim - 1)))
 
         # coverage, monotone transform
         low = all_optim - 1.96 * all_hess_inv

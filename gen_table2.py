@@ -1,9 +1,9 @@
 from result_summarizer import ResultSummarizer
 
 
-def results_section_str(title, values, mcses, fixed=False):
+def results_section_str(title, values, mcses, fixed=False, num_skip=0):
     nmod = len(values)
-    res = title + ' ' + ' '.join(['&']*nmod*2)
+    res = title + ' ' + ' '.join(['&']*(nmod*2 - num_skip))
     parameter_names = (
         '$\\sigma^2_E$',
         '$\\sigma^2_G$',
@@ -26,7 +26,7 @@ def results_section_str(title, values, mcses, fixed=False):
 
 
 if __name__ == '__main__':
-    aggf5_results = ResultSummarizer('sim-output/aggf')
+    aggf5_results = ResultSummarizer('sim-output/aggf', True)
     laggf5_results = ResultSummarizer('sim-output/results5')
     laggf18_results = ResultSummarizer('sim-output/results18')
     laggf18_reordered_results = ResultSummarizer('sim-output/results-reordered')
@@ -40,12 +40,12 @@ if __name__ == '__main__':
         laggf18_shuffled_results
     )
 
-    print(results_section_str('Bias', [r.bias for r in model_results], [r.mcse_bias for r in model_results]))
+    print(results_section_str('\\textbf{Bias}', [r.bias for r in model_results], [r.mcse_bias for r in model_results]))
     print('\\\\')
-    print(results_section_str('EmpSE', [r.emp_se for r in model_results], [r.mcse_emp_se for r in model_results]))
+    print(results_section_str('\\textbf{EmpSE}', [r.emp_se for r in model_results], [r.mcse_emp_se for r in model_results]))
     print('\\\\')
-    print(results_section_str('ModSE', [r.mod_se for r in model_results], [r.mcse_mod_se for r in model_results]))
+    print(results_section_str('\\textbf{ModSE}', [r.mod_se for r in model_results], [r.mcse_mod_se for r in model_results]))
     print('\\\\')
-    print(results_section_str('Relative error in ModSE (\\%)', [r.mod_se_error for r in model_results], [r.mcse_mod_se_error for r in model_results]))
+    print(results_section_str('\\multicolumn{3}{l}{\\textbf{Relative error in ModSE (\\%)}}', [r.mod_se_error for r in model_results], [r.mcse_mod_se_error for r in model_results], num_skip=2))
     print('\\\\')
-    print(results_section_str('Coverage', [r.coverage for r in model_results], [r.mcse_coverage for r in model_results], fixed=True))
+    print(results_section_str('\\textbf{Coverage}', [r.coverage for r in model_results], [r.mcse_coverage for r in model_results], fixed=True))
